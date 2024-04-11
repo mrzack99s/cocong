@@ -16,3 +16,8 @@
 (Need root user) 
 
 `./uninstall.sh`
+
+# Custom templates
+
+You can use templates from the templates directory to modify them. The relevant and necessary parameters are already in that file.
+After that, copy your custom file to replace that file on server in directory **/usr/share/cocong/templates**
