@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Request Login</title>
+    <style>
+      /* body {
+        font-family: Helvetica, sans-serif;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+        height: 95vh;
+      } */
+
+      body,
+      html {
+        /* height: 100%; */
+        padding: 0;
+        margin: 0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      .bg-image {
+        background: no-repeat center center fixed;
+        background-size: cover;
+        display: block;
+        left: -8px;
+        top: -8px;
+        bottom: -8px;
+        position: fixed;
+        right: -8px;
+        z-index: 1;
+        -webkit-filter: blur(8px);
+        -moz-filter: blur(8px);
+        -o-filter: blur(8px);
+        -ms-filter: blur(8px);
+        filter: blur(8px);
+        -webkit-background-size: cover;
+        -moz-background-size: cover;
+        -o-background-size: cover;
+        margin: -8px;
+      }
+
+      .wrapper {
+        color: white;
+        font-weight: bold;
+        position: absolute;
+        top: 45%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 2;
+        min-width: 280px;
+        max-width: 500px;
+        padding: 20px;
+        text-align: center;
+      }
+
+      .logo {
+        width: 140px;
+        height: 140px;
+        background: #fefefe;
+        margin: 1rem auto;
+        border-radius: 70px;
+        position: relative;
+        padding: 1rem;
+      }
+
+      .logo .title {
+        font-size: 24pt;
+        font-weight: 800;
+        width: 77%;
+        margin-bottom: 2rem;
+        color: #59a4ff;
+        position: absolute;
+        top: 40%;
+        text-align: center;
+      }
+
+      form {
+        padding: 1rem;
+        border-radius: 16px;
+        background: #fefefe;
+      }
+
+      input[type="text"],
+      input[type="password"] {
+        width: 100%;
+        padding: 20px 20px;
+        border-radius: 8px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 0;
+        background: #eaeaea;
+        box-sizing: border-box;
+      }
+
+      button {
+        background: #59a4ff;
+        background: linear-gradient(to right, #59a4ff 0%, #004ea7 100%);
+
+        color: white;
+        padding: 12px 20px;
+        margin: 8px 0;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        width: 100%;
+      }
+
+      button.danger {
+        background: #ec7070;
+        background: linear-gradient(to right, #ec7070 0%, #ff5959 100%);
+
+        color: white;
+      }
+
+      button:hover {
+        opacity: 0.8;
+      }
+
+      .container {
+        padding: 1px;
+      }
+
+      span.password {
+        float: right;
+        padding-top: 16px;
+      }
+
+      .img-copyright {
+        position: fixed;
+        left: 50%;
+        bottom: 1rem;
+        transform: translate(-50%, -50%);
+        color: #fff;
+        opacity: 0.6;
+        font-size: 11pt;
+        z-index: 2;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-image">
+      <img
+        src="data:image/jpeg;base64,{{.BGImage}}"
+        width="100%"
+        height="100%"
+        style="object-fit: cover"
+      />
+    </div>
+
+    <div class="wrapper">
+      <div class="logo">
+        <div class="title">COCO</div>
+      </div>
+
+      <form method="post" id="form-login" action="{{.AuthEndpoint}}">
+        <div class="container">
+          <div id="form-content">
+            <div style="text-align: left">
+              <!-- <label for="username"><b>Username</b></label> -->
+              <input
+                type="text"
+                placeholder="Enter Username"
+                id="username"
+                name="username"
+                required
+              />
+            </div>
+
+            <div style="text-align: left">
+              <!-- <label for="password"><b>Password</b></label> -->
+              <input
+                type="password"
+                placeholder="Enter Password"
+                id="password"
+                name="password"
+                required
+              />
+            </div>
+
+            <button type="submit">Login</button>
+          </div>
+          <div
+            style="
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              color: #4d4d4d;
+              font-size: 16pt;
+              display: none;
+            "
+            id="wait-content"
+          >
+            Logging in to system, <br />wait a second
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="img-copyright">{{.BGCopyright}}</div>
+  </body>
+  <script>
+    function logSubmit(event) {
+      let formContent = document.getElementById("form-content");
+      formContent.style.display = "none";
+
+      let waitContent = document.getElementById("wait-content");
+      waitContent.style.display = "block";
+    }
+
+    const form = document.getElementById("form-login");
+    form.addEventListener("submit", logSubmit);
+  </script>
+</html>

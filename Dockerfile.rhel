@@ -1,0 +1,22 @@
+FROM --platform=linux/amd64 oraclelinux:9
+
+RUN yum config-manager --set-enabled ol9_codeready_builder
+RUN yum install -y libpcap libpcap-devel gcc make git
+
+RUN curl -L https://go.dev/dl/go1.21.8.linux-amd64.tar.gz -o go1.21.8.linux-amd64.tar.gz
+RUN tar -C /usr/local -xzf go1.21.8.linux-amd64.tar.gz 
+
+RUN rm -f go1.21.8.linux-amd64.tar.gz
+
+RUN echo "export PATH=\$PATH:/usr/local/go/bin" >> /root/.bashrc
+RUN echo "export GOPATH=\$HOME/go" >> /root/.bashrc
+RUN echo "export PATH=\$PATH:\$GOPATH/bin" >> /root/.bashrc
+
+RUN source /root/.bashrc
+RUN mkdir /build
+
+ENV CGO_ENABLED=1
+ENV CGO_ENABLED=linux
+ENV CGO_ENABLED=amd64
+
+WORKDIR /build

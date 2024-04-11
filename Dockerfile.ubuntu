@@ -1,0 +1,21 @@
+FROM --platform=linux/amd64 ubuntu:22.04
+
+RUN apt-get update
+RUN apt-get install -y libpcap0.8 libpcap0.8-dev build-essential make git curl
+
+RUN curl -L https://go.dev/dl/go1.21.8.linux-amd64.tar.gz -o go1.21.8.linux-amd64.tar.gz
+RUN tar -C /usr/local -xzf go1.21.8.linux-amd64.tar.gz 
+
+RUN rm -f go1.21.8.linux-amd64.tar.gz
+
+RUN echo "export PATH=\$PATH:/usr/local/go/bin" >> /root/.bashrc
+RUN echo "export GOPATH=\$HOME/go" >> /root/.bashrc
+RUN echo "export PATH=\$PATH:\$GOPATH/bin" >> /root/.bashrc
+
+RUN mkdir /build
+
+ENV CGO_ENABLED=1
+ENV CGO_ENABLED=linux
+ENV CGO_ENABLED=amd64
+
+WORKDIR /build

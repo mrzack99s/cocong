@@ -1,0 +1,31 @@
+egress_interface: eth0
+secure_interface: eth1
+session_idle: 30 # (Unit minutes), Kick from system if idle more than session_idle time 
+max_concurrent_session: 3 # Global setting  max_concurrent_session pere user
+authorized_networks:
+  - 0.0.0.0/0
+# bypass_networks:
+#   - 192.168.200.11/32 # Bypass network autherntication
+ssh_authorized_networks:
+  - 0.0.0.0/0
+redirect_url: https://www.linkedin.com/in/chatdanai-phakaket-7b5311173/
+login_fail2ban: false
+domain_name: cocong.local
+timezone: Asia/Bangkok
+captive_portal_enable: true
+
+# If authentication with native user. It does not require any configuration.
+
+# Authentication via radius server
+# radius:
+#   hostname: changeme
+#   port: 1812
+#   secret: changeme
+
+# Authentication via Windows AD or LDAP
+# ldap:
+#   hostname: changeme
+#   port: 636
+#   tls_enable: true # If enable tls. You must copy your ldap certificate and private key to /etc/cocong/certs with filename ldap.crt and ldap.key
+#   domain: changeme
+

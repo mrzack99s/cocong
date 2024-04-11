@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Status</title>
+    <style>
+      body {
+        font-family: Helvetica, sans-serif;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+        height: 95vh;
+      }
+
+      .wrapper {
+        min-width: 200px;
+        max-width: 500px;
+        text-align: center;
+      }
+
+      input[type="text"],
+      input[type="password"] {
+        width: 100%;
+        padding: 8px 20px;
+        border-radius: 8px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+      }
+
+      button {
+        background: #59a4ff;
+        background: linear-gradient(to right, #59a4ff 0%, #004ea7 100%);
+
+        color: white;
+        /* padding: 12px 20px; */
+        margin: 8px 2px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        height: 50px;
+        width: 40%;
+      }
+
+      button:hover {
+        opacity: 0.8;
+      }
+
+      .container {
+        padding: 16px;
+        border: 2px solid #f1f1f1;
+        padding: 1rem;
+        border-radius: 8px;
+      }
+
+      span.password {
+        float: right;
+        padding-top: 16px;
+      }
+
+      .title {
+        font-size: 24pt;
+        font-weight: 800;
+        margin-bottom: 2rem;
+        background: #59a4ff;
+        background: linear-gradient(to right, #59a4ff 0%, #004ea7 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      button.danger {
+        background: #ec7070;
+        background: linear-gradient(to right, #ec7070 0%, #ff5959 100%);
+
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrapper">
+      <div class="title">COCONG</div>
+
+      <div class="container">
+        <table style="text-align: left">
+          <tr>
+            <td style="width: 100px; font-weight: 800">User</td>
+            <td>{{.Session.User}}</td>
+          </tr>
+          <tr>
+            <td style="width: 100px; font-weight: 800">Auth Type</td>
+            <td>{{.Session.AuthType}}</td>
+          </tr>
+          <tr>
+            <td style="width: 100px; font-weight: 800">Concurrent</td>
+            <td>{{.Concurrent}}</td>
+          </tr>
+          <tr>
+            <td style="width: 100px; font-weight: 800">IP Address</td>
+            <td>{{.Session.IPAddress}}</td>
+          </tr>
+          <tr>
+            <td style="width: 100px; font-weight: 800">Last Seen</td>
+            <td>{{.SessionLastSeen}}</td>
+          </tr>
+        </table>
+
+        <hr style="margin: 1rem 0" />
+        <div style="text-align: left">
+          <u style="font-weight: 800">Bandwidth</u>
+          <table style="text-align: left; margin-top: 12px">
+            <tr>
+              <td style="width: 100px; font-weight: 800">Download</td>
+              <td>
+                {{if and (ne .Session.BandwidthID nil) (gt .Session.Bandwidth.DownloadLimit 0)}}
+                {{.Session.Bandwidth.DownloadLimit}} mbps {{else}} Unlimited
+                {{end}}
+              </td>
+            </tr>
+            <tr>
+              <td style="width: 100px; font-weight: 800">Upload</td>
+              <td>
+                {{if and (ne .Session.BandwidthID nil) (gt .Session.Bandwidth.UploadLimit 0)}}
+                {{.Session.Bandwidth.UploadLimit}} mbps {{else}} Unlimited
+                {{end}}
+              </td>
+            </tr>
+          </table>
+        </div>
+        <div style="display: flex; justify-content: center; margin-top: 1rem">
+          <button
+            type="button"
+            onclick="document.location.href='{{.ChangePasswordPageEndpoint}}'"
+            style="width: 80%;"
+          >
+            Change Password
+          </button>
+        </div>
+        <div style="display: flex; justify-content: center">
+          <button
+            class="danger"
+            type="button"
+            onclick="document.location.href='{{.LogoutEndpoint}}'"
+          >
+            Logout
+          </button>
+          <button
+            class="danger"
+            type="button"
+            onclick="document.location.href='{{.LogoutAllDeviceEndpoint}}'"
+          >
+            Logout all device
+          </button>
+        </div>
+        
+      </div>
+    </div>
+  </body>
+</html>
