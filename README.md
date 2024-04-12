@@ -1,3 +1,13 @@
+# Features
+
+- User Managagement
+- Captive Portal
+- Bandwidth Control
+- Network Capture
+- LDAP Integration
+- Radius Integration
+- Private DNS Resolver (CoreDNS)
+
 # Installation guide
 (Need root user) 
 
