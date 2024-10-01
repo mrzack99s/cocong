@@ -1,0 +1,46 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+      name: Templates/Applications
+  templates:
+    - uuid: dc835f214b0247a5a77eb02601dffe0a
+      template: 'CoCoNG by REST'
+      name: 'CoCoNG by REST'
+      groups:
+        - name: Templates/Applications
+      items:
+        - uuid: b77f7c97fd3f43f299019fbbbda6f8ed
+          name: 'Online Session'
+          type: HTTP_AGENT
+          key: cocong.online_session
+          trends: '0'
+          preprocessing:
+            - type: JSONPATH
+              parameters:
+                - $.Count
+          url: '{$COCONG.SCHEMA}://{$COCONG.HOST}/op/session/query'
+          query_fields:
+            - name: offset
+              value: '0'
+            - name: limit
+              value: '1'
+          headers:
+            - name: api-token
+              value: '{$COCONG.API_KEY}'
+      macros:
+        - macro: '{$COCONG.API_KEY}'
+          type: SECRET_TEXT
+        - macro: '{$COCONG.HOST}'
+          value: 172.16.10.1
+        - macro: '{$COCONG.SCHEMA}'
+          value: https
+  graphs:
+    - uuid: 2e5c0e47997d4bc88d5bc4880150864a
+      name: 'Online Session'
+      graph_items:
+        - color: 2E7D32
+          calc_fnc: ALL
+          item:
+            host: 'CoCoNG by REST'
+            key: cocong.online_session
