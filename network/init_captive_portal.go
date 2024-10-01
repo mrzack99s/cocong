@@ -89,12 +89,21 @@ func InitializeCaptivePortal() (err error) {
 	if err != nil {
 		return
 	}
+	err = IPT.Insert("filter", "FORWARD", 1, "-i", vars.Config.SecureInterface, "-o", vars.Config.EgressInterface, "-p", "tcp", "--dport", "53", "-j", "DROP")
+	if err != nil {
+		return
+	}
+
+	err = IPT.Insert("filter", "FORWARD", 1, "-i", vars.Config.SecureInterface, "-o", vars.Config.EgressInterface, "-p", "udp", "--dport", "53", "-j", "DROP")
+	if err != nil {
+		return
+	}
 
 	if vars.Config.ExternalPortalURL != "" {
 		_, host, port, _ := utils.ParseURL(vars.Config.ExternalPortalURL)
 		hostIp, _ := utils.ResolveIp(host)
 
-		err = IPT.InsertUnique("filter", "FORWARD", 1, "-p", "tcp", "-i", vars.Config.SecureInterface, "--match", "multiport", "--dports", port, "-d", hostIp, "-j", "ACCEPT")
+		err = IPT.InsertUnique("filter", "FORWARD", 3, "-p", "tcp", "-i", vars.Config.SecureInterface, "--match", "multiport", "--dports", port, "-d", hostIp, "-j", "ACCEPT")
 		if err != nil {
 			return
 		}
@@ -122,6 +131,11 @@ func InitializeCaptivePortal() (err error) {
 	}
 
 	err = IPT.InsertUnique("nat", "PREROUTING", 1, "-s", "0.0.0.0/0", "-p", "tcp", "-i", vars.Config.SecureInterface, "-d", interfaceIp, "-m", "tcp", "--dport", "443", "-j", "ACCEPT")
+	if err != nil {
+		return
+	}
+
+	err = IPT.InsertUnique("filter", "OUTPUT", 1, "-j", "ACCEPT")
 	if err != nil {
 		return
 	}

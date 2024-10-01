@@ -57,15 +57,13 @@ func main() {
 			if !vars.SYS_DEBUG {
 				gin.SetMode(gin.ReleaseMode)
 
-				if vars.Config.CaptivePortalEnable {
-					err := network.InitializeCaptivePortal()
-					if err != nil {
-						panic(err)
-					}
-
-					watcher.CaptivePortalDetector(context.Background())
+				err := network.InitializeCaptivePortal()
+				if err != nil {
+					panic(err)
 				}
 
+				watcher.CaptivePortalDetector(context.Background())
+				watcher.NetIdleChecking(context.Background())
 				watcher.NetWatcher(context.Background())
 				watcher.ConntrackChecking(context.Background())
 

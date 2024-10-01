@@ -2,8 +2,10 @@ package api_operation
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mrzack99s/cocong/utils"
 	"github.com/mrzack99s/cocong/vars"
 )
 
@@ -21,6 +23,12 @@ func NewController(router gin.IRouter) *controller {
 
 func tokenMiddleware(c *gin.Context) {
 	tokenString := c.Request.Header.Get("api-token")
+	envApiKeyHashed := os.Getenv("COCONG_API_KEY_HASHED")
+
+	if utils.Sha512encode(tokenString) == envApiKeyHashed {
+		c.Next()
+		return
+	}
 
 	_, ok := vars.AdminSession.Get(tokenString)
 	if !ok {
@@ -28,6 +36,7 @@ func tokenMiddleware(c *gin.Context) {
 		c.Abort()
 		return
 	}
+
 	c.Next()
 }
 

@@ -20,8 +20,7 @@ type ConfigType struct {
 	Radius *integration.RadiusEndpointType `yaml:"radius" json:"radius"`
 	LDAP   *integration.LDAPEndpointType   `yaml:"ldap" json:"ldap"`
 
-	TimeZone            string `yaml:"timezone" json:"timezone"`
-	CaptivePortalEnable bool   `yaml:"captive_portal_enable" json:"captive_portal_enable"`
+	TimeZone string `yaml:"timezone" json:"timezone"`
 }
 
 type EndpointType struct {

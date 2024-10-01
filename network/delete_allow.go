@@ -33,6 +33,15 @@ func DeleteAllowAccessBypass(ss *inmemory_model.Session) (err error) {
 	if err != nil {
 		return
 	}
+	err = IPT.Delete("filter", "INPUT", "-p", "udp", "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "--dport", "53", "-d", interfaceIp, "-j", "ACCEPT")
+	if err != nil {
+		return
+	}
+
+	err = IPT.Delete("filter", "INPUT", "-p", "tcp", "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "--dport", "53", "-d", interfaceIp, "-j", "ACCEPT")
+	if err != nil {
+		return
+	}
 
 	err = IPT.Delete("filter", "INPUT", "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "-p", "tcp", "--match", "multiport", "--dports", "443,8080,8443", "-d", interfaceIp, "-j", "DROP")
 	if err != nil {

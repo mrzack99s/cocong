@@ -161,6 +161,7 @@ After=network.target
 [Service]
 User=root
 Group=root
+# Environment="COCONG_API_KEY_HASHED=<SHA512>"
 WorkingDirectory=/etc/cocong
 ExecStart=cocong run
 Restart=on-failure
