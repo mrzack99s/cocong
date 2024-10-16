@@ -81,9 +81,8 @@ func NetWatcher(ctx context.Context) {
 						}
 
 						vars.InMemoryDatabase.Model(&inmemory_model.Session{}).Where("ip_address = ?", netLogModel.SourceNetwork).Update("last_seen", time.Now().In(vars.TZ))
+						vars.Database.Create(netLogModel)
 
-						fmt.Println(netLogModel)
-						// vars.Database.Create(netLogModel)
 					}
 
 				}

@@ -268,6 +268,9 @@ systemctl enable cocong
 systemctl enable cocong-admin
 systemctl enable coredns
 
+if [[ "${OS_BASED}" == "rhel" ]]; then
+	sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/sysconfig/selinux
+fi
 
 
 cat >&2 <<-'EOF'
