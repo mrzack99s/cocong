@@ -3,11 +3,9 @@ package api
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/mrzack99s/cocong/model"
-	"github.com/mrzack99s/cocong/model/inmemory_model"
 	"github.com/mrzack99s/cocong/network"
 	"github.com/mrzack99s/cocong/services"
 	"github.com/mrzack99s/cocong/session"
@@ -28,9 +26,8 @@ func (ctl *controller) getAuthentication(c *gin.Context) {
 		Password: password,
 	}
 
-	newSession := inmemory_model.Session{
+	newSession := types.SessionInfo{
 		IPAddress: clientIp,
-		LastSeen:  time.Now().In(vars.TZ),
 		User:      checkCredential.Username,
 	}
 
@@ -42,10 +39,11 @@ func (ctl *controller) getAuthentication(c *gin.Context) {
 
 	newSession.AuthType = authType
 
-	// Find logged by ip
-
-	var countByUsername int64
-	vars.InMemoryDatabase.Model(&inmemory_model.Session{}).Select("count(id)").Where("user like ?", fmt.Sprintf("%%%s%%", checkCredential.Username)).Scan(&countByUsername)
+	countLoggedUsername := 0
+	listUsernameSession, err := session.Instance.GetByUsername(checkCredential.Username)
+	if err == nil {
+		countLoggedUsername = len(listUsernameSession)
+	}
 
 	if newSession.AuthType == "native" {
 		var user model.User
@@ -57,10 +55,15 @@ func (ctl *controller) getAuthentication(c *gin.Context) {
 			return
 		}
 
-		newSession.BandwidthID = user.Directory.BandwidthID
+		if !user.Enable {
+			msg := "your account is disabled"
+			c.Redirect(http.StatusSeeOther, fmt.Sprintf("/error?msg=%s", msg))
+			return
+		}
+
 		newSession.Bandwidth = *user.Directory.Bandwidth
 
-		if user.Directory.MaxConcurrent > 0 && countByUsername >= user.Directory.MaxConcurrent {
+		if user.Directory.MaxConcurrent > 0 && int64(countLoggedUsername) >= user.Directory.MaxConcurrent {
 			msg := fmt.Sprintf("user %s reached the limit concurrent session and login via %s", checkCredential.Username, clientIp)
 			c.Redirect(http.StatusSeeOther, fmt.Sprintf("/error?msg=%s", msg))
 			return
@@ -71,14 +74,14 @@ func (ctl *controller) getAuthentication(c *gin.Context) {
 		}
 
 	} else {
-		if vars.Config.MaxConcurrentSession > 0 && countByUsername >= int64(vars.Config.MaxConcurrentSession) {
+		if vars.Config.MaxConcurrentSession > 0 && int64(countLoggedUsername) >= int64(vars.Config.MaxConcurrentSession) {
 			msg := fmt.Sprintf("user %s reached the limit concurrent session and login via %s", checkCredential.Username, clientIp)
 			c.Redirect(http.StatusSeeOther, fmt.Sprintf("/error?msg=%s", msg))
 			return
 		}
 	}
 
-	err = session.NewSession(&newSession)
+	err = session.Instance.Create(newSession)
 	if err != nil {
 		msg := fmt.Sprintf("%s via %s", err.Error(), clientIp)
 		c.Redirect(http.StatusSeeOther, fmt.Sprintf("/error?msg=%s", msg))
@@ -96,8 +99,8 @@ func (ctl *controller) changePassword(c *gin.Context) {
 
 	clientIp := c.ClientIP()
 
-	session := inmemory_model.Session{}
-	err := vars.InMemoryDatabase.Where("ip_address = ?", clientIp).First(&session).Error
+	// session := inmemory_model.Session{}
+	session, err := session.Instance.GetByIP(clientIp)
 	if err != nil {
 		c.Redirect(http.StatusSeeOther, "/login")
 		return

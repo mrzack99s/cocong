@@ -1,7 +1,7 @@
 package network
 
 import (
-	"github.com/mrzack99s/cocong/model/inmemory_model"
+	"github.com/mrzack99s/cocong/types"
 	"github.com/mrzack99s/cocong/utils"
 	"github.com/mrzack99s/cocong/vars"
 )
@@ -17,11 +17,6 @@ func InitializeCaptivePortal() (err error) {
 	if err != nil {
 		return
 	}
-
-	// err = IPT.ClearChain("raw", "PREROUTING")
-	// if err != nil {
-	// 	return
-	// }
 
 	// Append Rules
 	// err = IPT.AppendUnique("filter", "INPUT", "-p", "icmp", "-j", "DROP")
@@ -51,6 +46,12 @@ func InitializeCaptivePortal() (err error) {
 	if err != nil {
 		return
 	}
+
+	err = IPT.InsertUnique("filter", "INPUT", 1, "-i", "lo", "-j", "ACCEPT")
+	if err != nil {
+		return
+	}
+
 	// last_accept_input_rule_num = 2
 
 	if !vars.SYS_DEBUG {
@@ -61,9 +62,11 @@ func InitializeCaptivePortal() (err error) {
 				return
 			}
 
+			SSHAuthorizedNetworks = append(SSHAuthorizedNetworks, net)
+
 		}
 
-		// last_accept_input_rule_num += len(vars.Config.SSHAuthorizedNetworks)
+		Last_accept_input_rule_num += len(vars.Config.SSHAuthorizedNetworks)
 	} else {
 		err = IPT.Insert("filter", "INPUT", 1, "-p", "tcp", "-s", "0.0.0.0/0", "--dport", "22", "-d", interfaceIp, "-j", "ACCEPT")
 		if err != nil {
@@ -81,6 +84,8 @@ func InitializeCaptivePortal() (err error) {
 		if err != nil {
 			return
 		}
+
+		AuthorizedNetworks = append(AuthorizedNetworks, net)
 	}
 
 	// last_accept_input_rule_num += (len(vars.Config.AuthorizedNetworks) * 2)
@@ -107,7 +112,7 @@ func InitializeCaptivePortal() (err error) {
 		if err != nil {
 			return
 		}
-		last_accept_forward_rule_num += 1
+		Last_accept_forward_rule_num += 1
 	}
 
 	err = IPT.InsertUnique("nat", "PREROUTING", 1, "-p", "tcp", "-i", vars.Config.SecureInterface, "--dport", "80", "-j", "DNAT", "--to-destination", interfaceIp+":8080")
@@ -143,9 +148,11 @@ func InitializeCaptivePortal() (err error) {
 	// last_insert_init_prerouting = 2
 
 	for _, net := range vars.Config.BypassNetworks {
-		AllowAccessBypass(&inmemory_model.Session{
+		AllowAccessBypass(&types.SessionInfo{
 			IPAddress: net,
 		})
+
+		BypassedNetworks = append(BypassedNetworks, net)
 	}
 
 	// last_insert_init_prerouting += len(vars.Config.BypassNetworks)

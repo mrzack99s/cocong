@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mrzack99s/cocong/network"
 	"github.com/mrzack99s/cocong/utils"
-	"github.com/mrzack99s/cocong/vars"
 )
 
 type controller struct {
@@ -22,16 +22,15 @@ func Newcontroller(router gin.IRouter) *controller {
 
 func GetUnAuthirizedNetworkMiddleware(c *gin.Context) {
 
+	clientIp := c.ClientIP()
 	path := c.Request.URL.Path
 	if path == "/unauthorised" {
 		c.Next()
 		return
 	}
 
-	clientIp := c.ClientIP()
-
 	allow := false
-	for _, cidr := range vars.Config.AuthorizedNetworks {
+	for _, cidr := range network.AuthorizedNetworks {
 		if utils.Ipv4InCidr(cidr, clientIp) {
 			allow = true
 			break

@@ -36,6 +36,25 @@ if ! command_exists node; then
 		exit 1
 fi
 
+# if ! command_exists redis-server; then
+# 		cat >&2 <<-'EOF'
+# 			Redis 6.x is required
+# 			Please install Redis
+
+# 			RedHat Based:
+# 				yum install -y redis
+# 				--------- Or ---------
+# 				dnf install -y redis
+
+# 			Debian Based:
+# 				apt-get install redis-server
+
+
+# 		EOF
+# 		exit 1
+# fi
+
+
 if ! command_exists conntrack; then
 		cat >&2 <<-'EOF'
 			Conntrack-Tools is required
@@ -105,7 +124,37 @@ npm run build
 cp -r .next/static .next/standalone/.next/
 cp -r .next/standalone /usr/share/cocong/cocong-admin
 
+cat <<EOF > /usr/share/cocong/cocong-admin/server.js
+const next = require("next");
+const https = require("https");
+const fs = require("fs");
+const { parse } = require("url");
+
+const app = next({ dev: false });
+const handle = app.getRequestHandler();
+
+const httpsOptions = {
+  key: fs.readFileSync("/etc/cocong/certs/server.key"),
+  cert: fs.readFileSync("/etc/cocong/certs/server.crt"),
+};
+
+app.prepare().then(() => {
+  https
+    .createServer(httpsOptions, (req, res) => {
+      const parsedUrl = parse(req.url, true);
+      handle(req, res, parsedUrl);
+    })
+    .listen(3000, () => {
+      console.log("> Ready on https://0.0.0.0:3000");
+    });
+});
+EOF
+
 cd ../
+current_pwd=$(pwd)
+cd /usr/share/cocong/cocong-admin
+npm install fs url https
+cd $current_pwd
 
 # Install package
 
@@ -157,6 +206,7 @@ cat <<EOF > /etc/systemd/system/cocong.service
 [Unit]
 Description=Run the CoCoNG service
 After=network.target
+RequiresMountsFor=/etc
 
 [Service]
 User=root
@@ -165,6 +215,7 @@ Group=root
 WorkingDirectory=/etc/cocong
 ExecStart=cocong run
 Restart=on-failure
+RestartSec=5s
 
 [Install]
 WantedBy=multi-user.target

@@ -4,16 +4,14 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mrzack99s/cocong/model/inmemory_model"
-	"github.com/mrzack99s/cocong/vars"
+	"github.com/mrzack99s/cocong/session"
 )
 
 func (ctl *controller) changePasswordPage(c *gin.Context) {
 
 	clientIp := c.ClientIP()
 
-	mSession := inmemory_model.Session{}
-	err := vars.InMemoryDatabase.Where("ip_address = ?", clientIp).First(&mSession).Error
+	mSession, err := session.Instance.GetByIP(clientIp)
 	if err != nil {
 		c.Redirect(http.StatusFound, "/error?msg=Please login first!")
 		return

@@ -1,13 +1,17 @@
 package vars
 
 import (
+	"github.com/blevesearch/bleve/v2"
 	"github.com/outcaste-io/ristretto"
 	"gorm.io/gorm"
 )
 
 var (
-	Database         *gorm.DB
-	InMemoryDatabase *gorm.DB
+	NetLogDatabase  bleve.Index
+	AuthLogDatabase bleve.Index
+
+	Database *gorm.DB
+	// RedisCache *redis.Client
 
 	AdminSession, _ = ristretto.NewCache(&ristretto.Config{
 		NumCounters: 1e7,

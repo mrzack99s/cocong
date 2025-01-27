@@ -1,7 +1,5 @@
 package integration
 
-import "github.com/go-ldap/ldap/v3"
-
 type RadiusEndpointType struct {
 	Hostname string `yaml:"hostname" json:"hostname"`
 	Port     uint64 `yaml:"port" json:"port"`
@@ -13,5 +11,7 @@ type LDAPEndpointType struct {
 	Port      uint64 `yaml:"port" json:"port"`
 	TLSEnable bool   `yaml:"tls_enable" json:"tls_enable"`
 	Domain    string `yaml:"domain" json:"domain"`
-	instance  *ldap.Conn
+	PoolSize  uint   `yaml:"pool_size" json:"pool_size"`
+	// instance  *ldap.Conn
+	pool *LDAPConnectionPool
 }

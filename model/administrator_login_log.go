@@ -7,7 +7,7 @@ type AdministratorLoginLog struct {
 
 	TransactionAt time.Time
 	IPAddress     string
-	SuccessLogin  bool
+	Success       bool
 
-	ByUser string
+	User string
 }

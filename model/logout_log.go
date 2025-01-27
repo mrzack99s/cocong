@@ -7,5 +7,5 @@ type LogoutLog struct {
 
 	TransactionAt time.Time
 	IPAddress     string
-	ByUser        string
+	User          string
 }

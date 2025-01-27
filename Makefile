@@ -1,5 +1,5 @@
 BINARY = cocong
-VERSION = v1.0.0
+VERSION = v1.2.0
 
 start-dev-db:
 	docker-compose -f docker-compose.dev.yaml up -d

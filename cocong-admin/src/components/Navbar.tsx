@@ -52,7 +52,7 @@ import {
 } from "react";
 import {
   TextUnderlineRegular,
-  TextBoldRegular,
+  SettingsCogMultipleRegular,
   AppGenericFilled,
   HighlightFilled,
 } from "@fluentui/react-icons";
@@ -130,6 +130,15 @@ const Navbar = () => {
     {
       set_divider: true,
     },
+    // {
+    //   name: "Configure",
+    //   icon: <SettingsCogMultipleRegular />,
+    //   link: "/admin/configure",
+    //   description: "System configure",
+    // },
+    // {
+    //   set_divider: true,
+    // },
     {
       name: "BW Profile Management",
       icon: <AppGenericFilled />,

@@ -22,8 +22,10 @@ func Authentication(ctx *gin.Context, cred types.CredentialVerification) (authTy
 			authType = "ldap"
 			loginLog.IPAddress = ctx.ClientIP()
 			loginLog.TransactionAt = time.Now().In(vars.TZ)
-			loginLog.SuccessLogin = true
-			loginLog.ByUser = fmt.Sprintf("%s,%s", authType, cred.Username)
+			loginLog.Success = true
+			loginLog.User = fmt.Sprintf("%s,%s", authType, cred.Username)
+		} else {
+			vars.SystemLog.Printf("[error ldap]: %s\n", err.Error())
 		}
 	}
 
@@ -33,8 +35,10 @@ func Authentication(ctx *gin.Context, cred types.CredentialVerification) (authTy
 			authType = "radius"
 			loginLog.IPAddress = ctx.ClientIP()
 			loginLog.TransactionAt = time.Now().In(vars.TZ)
-			loginLog.SuccessLogin = true
-			loginLog.ByUser = fmt.Sprintf("%s,%s", authType, cred.Username)
+			loginLog.Success = true
+			loginLog.User = fmt.Sprintf("%s,%s", authType, cred.Username)
+		} else {
+			vars.SystemLog.Printf("[error radius]: %s\n", err.Error())
 		}
 	}
 
@@ -44,8 +48,8 @@ func Authentication(ctx *gin.Context, cred types.CredentialVerification) (authTy
 		if vars.Database.Where("username = ? and hashed = ?", cred.Username, utils.Sha512encode(cred.Password)).First(&user).Error != nil {
 			loginLog.IPAddress = ctx.ClientIP()
 			loginLog.TransactionAt = time.Now().In(vars.TZ)
-			loginLog.SuccessLogin = false
-			loginLog.ByUser = cred.Username
+			loginLog.Success = false
+			loginLog.User = cred.Username
 
 			if user.ID != "" {
 				user.FailedLoginCount += 1
@@ -58,8 +62,8 @@ func Authentication(ctx *gin.Context, cred types.CredentialVerification) (authTy
 			authType = "native"
 			loginLog.IPAddress = ctx.ClientIP()
 			loginLog.TransactionAt = time.Now().In(vars.TZ)
-			loginLog.SuccessLogin = true
-			loginLog.ByUser = fmt.Sprintf("%s,%s", authType, cred.Username)
+			loginLog.Success = true
+			loginLog.User = fmt.Sprintf("%s,%s", authType, cred.Username)
 
 			if user.ID != "" {
 				user.FailedLoginCount = 0
@@ -69,7 +73,6 @@ func Authentication(ctx *gin.Context, cred types.CredentialVerification) (authTy
 			err = nil
 		}
 
-		fmt.Println(user)
 	}
 
 	vars.Database.Create(&loginLog)

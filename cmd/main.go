@@ -11,6 +11,7 @@ import (
 	api_operation "github.com/mrzack99s/cocong/api/operation"
 	"github.com/mrzack99s/cocong/constants"
 	"github.com/mrzack99s/cocong/network"
+	"github.com/mrzack99s/cocong/session"
 	"github.com/mrzack99s/cocong/setup"
 	"github.com/mrzack99s/cocong/utils"
 	"github.com/mrzack99s/cocong/vars"
@@ -29,6 +30,9 @@ func main() {
 			if vars.SYS_DEBUG {
 				vars.Config.TimeZone = "Asia/Bangkok"
 				vars.Config.AuthorizedNetworks = []string{"0.0.0.0/0", "::/0"}
+				network.AuthorizedNetworks = vars.Config.AuthorizedNetworks
+				setup.AppConfig()
+
 			} else {
 				if !utils.IsRootPrivilege() {
 					panic(`this application needs the ability to run commands as root. We are unable to find either "sudo" or "su" available to make this happen.`)
@@ -53,6 +57,12 @@ func main() {
 			utils.VerifyTimeZone()
 			setup.GetDeviceResources()
 			setup.Database()
+			session.Instance.New()
+
+			err := vars.Config.LDAP.NewLDAPConnectionPool()
+			if err != nil {
+				panic(err)
+			}
 
 			if !vars.SYS_DEBUG {
 				gin.SetMode(gin.ReleaseMode)
@@ -93,9 +103,24 @@ func main() {
 			})
 
 			if vars.SYS_DEBUG {
-				router.RunTLS(":4443", "./certs/server.crt", "./certs/server.key")
+				// listener, err := net.Listen("tcp4", "0.0.0.0:4443")
+				// if err != nil {
+				// 	log.Fatalf("Failed to create listener: %v", err)
+				// }
+
+				// server := &http.Server{
+				// 	Handler:      router,
+				// 	ReadTimeout:  10 * time.Second,
+				// 	WriteTimeout: 10 * time.Second,
+				// }
+
+				// if err := server.ServeTLS(listener, "./certs/server.crt", "./certs/server.key"); err != nil {
+				// 	log.Fatalf("Server failed: %v", err)
+				// }
+				router.RunTLS("0.0.0.0:4443", "./certs/server.crt", "./certs/server.key")
+
 			} else {
-				router.RunTLS(":443", constants.CONFIG_DIR+"/certs/server.crt", constants.CONFIG_DIR+"/certs/server.key")
+				router.RunTLS("0.0.0.0:443", constants.CONFIG_DIR+"/certs/server.crt", constants.CONFIG_DIR+"/certs/server.key")
 			}
 
 		},

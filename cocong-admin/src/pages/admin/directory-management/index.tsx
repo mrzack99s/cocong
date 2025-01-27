@@ -115,44 +115,50 @@ const BW: NextPage = () => {
     if (bwSelectedRows.size == 0) {
       toast("Warning", <>Please select bandwidth profile</>, "warning");
     } else {
-      apiConnector
-        .post("/op/directory/create", {
-          Name: name,
-          BandwidthID: dataBW[bwSelectedRows.values().next().value].ID,
-        })
-        .then(() => {
-          toast("Success", <>Create a new directory success</>, "success");
-          setRefresh(!refresh);
-          setMode("data");
-          clearInput();
-        })
-        .catch(() => {
-          toast("Error", <>Cannot create a new directory</>, "error");
-        });
+      let index = bwSelectedRows.values().next().value;
+
+      if (index != undefined) {
+        apiConnector
+          .post("/op/directory/create", {
+            Name: name,
+            BandwidthID: dataBW[index as number].ID,
+          })
+          .then(() => {
+            toast("Success", <>Create a new directory success</>, "success");
+            setRefresh(!refresh);
+            setMode("data");
+            clearInput();
+          })
+          .catch(() => {
+            toast("Error", <>Cannot create a new directory</>, "error");
+          });
+      }
     }
   };
 
   const updateSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    apiConnector
-      .put("/op/directory/update", {
-        ID: id,
-        Name: name,
-        BandwidthID: dataBW[bwSelectedRows.values().next().value].ID,
-      })
-      .then(() => {
-        toast("Success", <>Update a directory success</>, "success");
-        setRefresh(!refresh);
-        setMode("data");
-        clearInput();
-      })
-      .catch(() => {
-        toast("Error", <>Cannot update a directory</>, "error");
-      })
-      .finally(() => {
-        setAddBtnDisabled(false);
-      });
+    let index = bwSelectedRows.values().next().value;
+    if (index != undefined) {
+      apiConnector
+        .put("/op/directory/update", {
+          ID: id,
+          Name: name,
+          BandwidthID: dataBW[index as number].ID,
+        })
+        .then(() => {
+          toast("Success", <>Update a directory success</>, "success");
+          setRefresh(!refresh);
+          setMode("data");
+          clearInput();
+        })
+        .catch(() => {
+          toast("Error", <>Cannot update a directory</>, "error");
+        })
+        .finally(() => {
+          setAddBtnDisabled(false);
+        });
+    }
   };
 
   const deleteDirectory = (id: string) => {

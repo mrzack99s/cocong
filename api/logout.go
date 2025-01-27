@@ -7,9 +7,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/mrzack99s/cocong/model"
-	"github.com/mrzack99s/cocong/model/inmemory_model"
 	"github.com/mrzack99s/cocong/network"
 	"github.com/mrzack99s/cocong/session"
+	"github.com/mrzack99s/cocong/types"
 	"github.com/mrzack99s/cocong/vars"
 )
 
@@ -17,28 +17,23 @@ func (ctl *controller) logout(c *gin.Context) {
 
 	clientIp := c.ClientIP()
 
-	mSession := inmemory_model.Session{}
-	err := vars.InMemoryDatabase.Where("ip_address = ?", clientIp).First(&mSession).Error
+	mSession, err := session.Instance.GetByIP(clientIp)
+
 	if err != nil {
 		msg := fmt.Sprintf("not found session of %s", clientIp)
 		c.Redirect(http.StatusFound, fmt.Sprintf("/error?msg=%s", msg))
 		return
 	}
 
-	err = session.CutOffSession(mSession)
-	if err != nil {
-		msg := fmt.Sprintf("%s via %s", err.Error(), clientIp)
-		c.Redirect(http.StatusFound, fmt.Sprintf("/error?msg=%s", msg))
-		return
-	}
+	session.Instance.Delete(mSession.IPAddress)
 
 	go func() {
-		network.BWDel(&mSession)
+		network.BWDel(mSession)
 
 		vars.Database.Create(&model.LogoutLog{
 			TransactionAt: time.Now().In(vars.TZ),
 			IPAddress:     clientIp,
-			ByUser:        fmt.Sprintf("%s,%s", mSession.AuthType, mSession.User),
+			User:          fmt.Sprintf("%s,%s", mSession.AuthType, mSession.User),
 		})
 
 	}()
@@ -50,44 +45,43 @@ func (ctl *controller) logoutAllDevices(c *gin.Context) {
 
 	clientIp := c.ClientIP()
 
-	mSession := inmemory_model.Session{}
-	err := vars.InMemoryDatabase.Where("ip_address = ?", clientIp).First(&mSession).Error
+	// mSession, err := utils.RedisGetInsideWildcard[inmemory_model.Session](context.Background(), vars.RedisCache, fmt.Sprintf("session|*|%s", clientIp))
+	// if err != nil {
+	// 	msg := fmt.Sprintf("not found session of %s", clientIp)
+	// 	c.Redirect(http.StatusFound, fmt.Sprintf("/error?msg=%s", msg))
+	// 	return
+	// }
+
+	// session.CutOffSession(mSession)
+
+	// go func() {
+	// 	network.BWDel(&mSession)
+
+	// 	vars.Database.Create(&model.LogoutLog{
+	// 		TransactionAt: time.Now().In(vars.TZ),
+	// 		IPAddress:     clientIp,
+	// 		User:          fmt.Sprintf("%s,%s", mSession.AuthType, mSession.User),
+	// 	})
+
+	// }()
+
+	mSession, err := session.Instance.GetByIP(clientIp)
 	if err != nil {
 		msg := fmt.Sprintf("not found session of %s", clientIp)
 		c.Redirect(http.StatusFound, fmt.Sprintf("/error?msg=%s", msg))
 		return
 	}
 
-	err = session.CutOffSession(mSession)
-	if err != nil {
-		msg := fmt.Sprintf("%s via %s", err.Error(), clientIp)
-		c.Redirect(http.StatusFound, fmt.Sprintf("/error?msg=%s", msg))
-		return
-	}
-
-	go func() {
-		network.BWDel(&mSession)
-
-		vars.Database.Create(&model.LogoutLog{
-			TransactionAt: time.Now().In(vars.TZ),
-			IPAddress:     clientIp,
-			ByUser:        fmt.Sprintf("%s,%s", mSession.AuthType, mSession.User),
-		})
-
-	}()
-
-	allSession := []inmemory_model.Session{}
-	vars.InMemoryDatabase.Where("user = ?", mSession.User).First(&allSession)
-
-	for _, s := range allSession {
-		session.CutOffSession(s)
-		go func(s *inmemory_model.Session) {
+	mSessions, _ := session.Instance.GetByUsername(mSession.User)
+	for _, s := range mSessions {
+		session.Instance.Delete(s.IPAddress)
+		go func(s *types.SessionInfo) {
 			network.BWDel(s)
 
 			vars.Database.Create(&model.LogoutLog{
 				TransactionAt: time.Now().In(vars.TZ),
 				IPAddress:     clientIp,
-				ByUser:        fmt.Sprintf("%s,%s", mSession.AuthType, mSession.User),
+				User:          fmt.Sprintf("%s,%s", mSession.AuthType, mSession.User),
 			})
 
 		}(&s)

@@ -25,18 +25,16 @@ func (o *BaseModel) BeforeCreate(tx *gorm.DB) (err error) {
 	return
 }
 
-// func (o *BaseModel) BeforeUpdate(tx *gorm.DB) (err error) {
-// 	o.UpdatedAt = time.Now().In(vars.TZ)
-// 	return
-// }
+type BaseModelWithoutAutoID struct {
+	ID        string ` gorm:"type:varchar(36);primarykey;"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt gorm.DeletedAt `gorm:"index"`
+}
 
-// func (o *BaseModel) BeforeDelete(tx *gorm.DB) (err error) {
-// 	o.DeletedAt = gorm.DeletedAt{
-// 		Time:  time.Now().In(vars.TZ),
-// 		Valid: true,
-// 	}
-// 	return
-// }
+type RedisBaseModel struct {
+	ID string ` gorm:"type:varchar(36);primarykey;"`
+}
 
 type CompositeBaseModels struct {
 	CreatedAt time.Time      `json:"created_at"`

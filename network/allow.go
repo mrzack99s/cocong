@@ -1,19 +1,19 @@
 package network
 
 import (
-	"github.com/mrzack99s/cocong/model/inmemory_model"
+	"github.com/mrzack99s/cocong/types"
 	"github.com/mrzack99s/cocong/utils"
 	"github.com/mrzack99s/cocong/vars"
 )
 
-func AllowAccess(ss *inmemory_model.Session) (err error) {
+func AllowAccess(ss *types.SessionInfo) (err error) {
 
-	err = IPT.Insert("nat", "PREROUTING", 4, "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "-j", "ACCEPT")
+	err = IPT.Insert("nat", "PREROUTING", Last_insert_prerouting, "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "-j", "ACCEPT")
 	if err != nil {
 		return
 	}
 
-	err = IPT.Insert("filter", "FORWARD", last_accept_forward_rule_num, "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "-o", vars.Config.EgressInterface, "-j", "ACCEPT")
+	err = IPT.Insert("filter", "FORWARD", Last_accept_forward_rule_num, "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "-o", vars.Config.EgressInterface, "-j", "ACCEPT")
 	if err != nil {
 		return
 	}
@@ -21,7 +21,7 @@ func AllowAccess(ss *inmemory_model.Session) (err error) {
 	return
 }
 
-func AllowAccessBypass(ss *inmemory_model.Session) (err error) {
+func AllowAccessBypass(ss *types.SessionInfo) (err error) {
 	interfaceIp, _ := utils.GetSecureInterfaceIpv4Addr()
 
 	err = IPT.Insert("nat", "PREROUTING", 4, "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "-j", "ACCEPT")
@@ -29,10 +29,14 @@ func AllowAccessBypass(ss *inmemory_model.Session) (err error) {
 		return
 	}
 
-	err = IPT.Insert("filter", "FORWARD", last_accept_forward_rule_num, "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "-o", vars.Config.EgressInterface, "-j", "ACCEPT")
+	Last_insert_prerouting += 1
+
+	err = IPT.Insert("filter", "FORWARD", Last_accept_forward_rule_num, "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "-o", vars.Config.EgressInterface, "-j", "ACCEPT")
 	if err != nil {
 		return
 	}
+
+	Last_accept_forward_rule_num += 1
 
 	err = IPT.Insert("filter", "INPUT", 1, "-p", "udp", "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "--dport", "53", "-d", interfaceIp, "-j", "ACCEPT")
 	if err != nil {
@@ -48,7 +52,8 @@ func AllowAccessBypass(ss *inmemory_model.Session) (err error) {
 	if err != nil {
 		return
 	}
-	// last_accept_input_rule_num += 1
+
+	Last_accept_input_rule_num += 3
 
 	return
 }

@@ -4,8 +4,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/mrzack99s/cocong/model/inmemory_model"
-	"github.com/mrzack99s/cocong/services"
 	"github.com/mrzack99s/cocong/session"
 	"github.com/mrzack99s/cocong/vars"
 )
@@ -15,8 +13,6 @@ func (ctl *controller) sessionQuery(c *gin.Context) {
 	search := c.Query("search")
 	offsetStr := c.Query("offset")
 	limitStr := c.Query("limit")
-	or := c.Query("or")
-
 	offset, e := strconv.Atoi(offsetStr)
 	if e != nil {
 		c.String(400, "offset is not correct, allow only integer")
@@ -28,24 +24,23 @@ func (ctl *controller) sessionQuery(c *gin.Context) {
 		c.String(400, "limit is not correct, allow only integer")
 		return
 	}
-
-	response := []inmemory_model.Session{}
-	count, err := services.DBQueryCustomDB(vars.InMemoryDatabase, &response, offset, limit, search, or == "true", false)
-	if err != nil {
-		c.String(500, err.Error())
+	response, err := session.Instance.Search(search, offset, limit)
+	if err != nil || response.Count == 0 {
+		c.JSON(200, gin.H{
+			"Count": 0,
+			"Data":  []any{},
+		})
 		return
 	}
-	for i, r := range response {
+
+	for i, r := range response.Data {
 		if r.BandwidthID != nil {
-			vars.Database.Where("id = ?", r.BandwidthID).First(&response[i].Bandwidth)
+			vars.Database.Where("id = ?", r.BandwidthID).First(&response.Data[i].Bandwidth)
 		}
 
 	}
 
-	c.JSON(200, gin.H{
-		"Count": count,
-		"Data":  response,
-	})
+	c.JSON(200, response)
 
 }
 
@@ -59,14 +54,15 @@ func (ctl *controller) sessionKick(c *gin.Context) {
 		return
 	}
 
-	s := inmemory_model.Session{}
-	if err := vars.InMemoryDatabase.Where("id = ?", params.SessionID).First(&s).Error; err != nil {
-		c.String(500, "not found session")
-		return
-	}
+	// _, err := session.Instance.GetByID(params.SessionID)
+	// if err != nil {
+	// 	c.String(500, "not found session")
+	// 	return
+	// }
 
-	if err := session.CutOffSession(s); err != nil {
-		c.String(500, "cannot cutoff session")
+	err := session.Instance.DeleteByID(params.SessionID)
+	if err != nil {
+		c.String(500, "not found session")
 		return
 	}
 

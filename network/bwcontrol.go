@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"os/exec"
 
-	"github.com/mrzack99s/cocong/model/inmemory_model"
+	"github.com/mrzack99s/cocong/types"
 	"github.com/mrzack99s/cocong/vars"
 )
 
-func BWSet(ss *inmemory_model.Session) error {
+func BWSet(ss *types.SessionInfo) error {
 	if ss.BandwidthID != nil {
 
 		if ss.Bandwidth.DownloadLimit > 0 {
@@ -37,7 +37,7 @@ func BWSet(ss *inmemory_model.Session) error {
 	return nil
 }
 
-func BWDel(ss *inmemory_model.Session) {
+func BWDel(ss *types.SessionInfo) {
 	c := exec.Command("tcdel", vars.Config.SecureInterface,
 		"--direction", "outgoing", "--network", fmt.Sprintf("%s/32", ss.IPAddress))
 	c.Run()

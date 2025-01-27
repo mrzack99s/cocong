@@ -60,24 +60,28 @@ const BW: NextPage = () => {
   // Online-sesion
   const [dataOnlineSession, setDataOnlineSession] = useState([] as any[]);
   const [pageCountOnlineSession, setPageCountOnlineSession] = useState(1);
+  const [countOnlineSession, setCountOnlineSession] = useState(0);
   const [searchOnlineSession, setSearchOnlineSession] = useState("");
   const [pageOnlineSession, setPageOnlineSession] = useState(1);
   const [refreshOnlineSession, setRefreshOnlineSession] = useState(false);
 
   useEffect(() => {
-    apiConnector
-      .get("/op/session/query", {
-        params: {
-          offset: (pageOnlineSession - 1) * limit,
-          limit: limit,
-          search: searchOnlineSession,
-        },
-      })
-      .then((res) => {
-        setDataOnlineSession(res.data.Data);
-        setPageCountOnlineSession(Math.ceil(res.data.Count / limit));
-      })
-      .catch(() => {});
+    if (mode == "online-session") {
+      apiConnector
+        .get("/op/session/query", {
+          params: {
+            offset: (pageOnlineSession - 1) * limit,
+            limit: limit,
+            search: searchOnlineSession,
+          },
+        })
+        .then((res) => {
+          setDataOnlineSession(res.data.Data);
+          setCountOnlineSession(res.data.Count);
+          setPageCountOnlineSession(Math.ceil(res.data.Count / limit));
+        })
+        .catch(() => {});
+    }
   }, [pageOnlineSession, searchOnlineSession, refreshOnlineSession]);
 
   // login-log
@@ -88,19 +92,21 @@ const BW: NextPage = () => {
   const [refreshLoginLog, setRefreshLoginLog] = useState(false);
 
   useEffect(() => {
-    apiConnector
-      .get("/op/log/login", {
-        params: {
-          offset: (pageLoginLog - 1) * limit,
-          limit: limit,
-          search: searchLoginLog,
-        },
-      })
-      .then((res) => {
-        setDataLoginLog(res.data.Data);
-        setPageCountLoginLog(Math.ceil(res.data.Count / limit));
-      })
-      .catch(() => {});
+    if (mode == "login-log") {
+      apiConnector
+        .get("/op/log/login", {
+          params: {
+            offset: (pageLoginLog - 1) * limit,
+            limit: limit,
+            search: searchLoginLog,
+          },
+        })
+        .then((res) => {
+          setDataLoginLog(res.data.Data);
+          setPageCountLoginLog(Math.ceil(res.data.Count / limit));
+        })
+        .catch(() => {});
+    }
   }, [pageLoginLog, searchLoginLog, refreshLoginLog]);
 
   // logout-log
@@ -111,19 +117,21 @@ const BW: NextPage = () => {
   const [refreshLogoutLog, setRefreshLogoutLog] = useState(false);
 
   useEffect(() => {
-    apiConnector
-      .get("/op/log/logout", {
-        params: {
-          offset: (pageLogoutLog - 1) * limit,
-          limit: limit,
-          search: searchLogoutLog,
-        },
-      })
-      .then((res) => {
-        setDataLogoutLog(res.data.Data);
-        setPageCountLogoutLog(Math.ceil(res.data.Count / limit));
-      })
-      .catch(() => {});
+    if (mode == "logout-log") {
+      apiConnector
+        .get("/op/log/logout", {
+          params: {
+            offset: (pageLogoutLog - 1) * limit,
+            limit: limit,
+            search: searchLogoutLog,
+          },
+        })
+        .then((res) => {
+          setDataLogoutLog(res.data.Data);
+          setPageCountLogoutLog(Math.ceil(res.data.Count / limit));
+        })
+        .catch(() => {});
+    }
   }, [pageLogoutLog, searchLogoutLog, refreshLogoutLog]);
 
   // net-log
@@ -134,19 +142,38 @@ const BW: NextPage = () => {
   const [refreshNetLog, setRefreshNetLog] = useState(false);
 
   useEffect(() => {
-    apiConnector
-      .get("/op/log/net", {
-        params: {
-          offset: (pageNetLog - 1) * limit,
-          limit: limit,
-          search: searchNetLog,
-        },
-      })
-      .then((res) => {
-        setDataNetLog(res.data.Data);
-        setPageCountNetLog(Math.ceil(res.data.Count / limit));
-      })
-      .catch(() => {});
+    switch (mode) {
+      case "online-session":
+        setRefreshOnlineSession((r) => !r);
+        break;
+      case "login-log":
+        setRefreshLoginLog((r) => !r);
+        break;
+      case "logout-log":
+        setRefreshLogoutLog((r) => !r);
+        break;
+      case "net-log":
+        setRefreshNetLog((r) => !r);
+        break;
+    }
+  }, [mode]);
+
+  useEffect(() => {
+    if (mode == "net-log") {
+      apiConnector
+        .get("/op/log/net", {
+          params: {
+            offset: (pageNetLog - 1) * limit,
+            limit: limit,
+            search: searchNetLog,
+          },
+        })
+        .then((res) => {
+          setDataNetLog(res.data.Data);
+          setPageCountNetLog(Math.ceil(res.data.Count / limit));
+        })
+        .catch(() => {});
+    }
   }, [pageNetLog, searchNetLog, refreshNetLog]);
 
   const kickSession = (id: string) => {
@@ -223,21 +250,56 @@ const BW: NextPage = () => {
           >
             {mode == "online-session" && (
               <>
-                <Button
-                  style={{ marginBottom: "1rem" }}
-                  icon={<ArrowClockwiseRegular />}
-                  onClick={() => {
-                    setDataOnlineSession([]);
-                    setRefreshOnlineSession(!refreshOnlineSession);
-                  }}
-                >
-                  Refresh
-                </Button>
+                <div style={{ display: "flex", width: "100%" }}>
+                  <div
+                    style={{
+                      width: "260px",
+                      border: "1px solid #f5f5f5",
+                      borderRadius: "12px",
+                      padding: "1rem 1rem 0 1rem",
+                      marginBottom: "1rem",
+                    }}
+                  >
+                    <div>
+                      <b>Online Sessions</b>
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        fontSize: "14pt",
+                        height: "64px",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      {countOnlineSession.toLocaleString()}
+                    </div>
+                  </div>
+                  <div
+                    style={{
+                      maxWidth: "260px",
+                      padding: "0 1rem",
+                      marginBottom: "1rem",
+                    }}
+                  >
+                    <Button
+                      style={{ height: "100%" }}
+                      icon={<ArrowClockwiseRegular />}
+                      onClick={() => {
+                        setDataOnlineSession([]);
+                        setRefreshOnlineSession(!refreshOnlineSession);
+                      }}
+                    >
+                      Refresh
+                    </Button>
+                  </div>
+                </div>
+
                 <div style={{ marginBottom: "1rem", height: "32px" }}>
                   <Input
                     type="text"
                     contentBefore={<SearchRegular />}
-                    placeholder="Search (use snakecase for field), example: name like test"
+                    placeholder="Search"
                     value={searchOnlineSession}
                     onChange={(_, d) => {
                       setSearchOnlineSession(d.value);
@@ -258,23 +320,23 @@ const BW: NextPage = () => {
                 )}
                 {dataOnlineSession.length > 0 && (
                   <>
-                    <Table style={{ width: "100%" }}>
+                    <Table style={{ width: "100%" }} noNativeElements>
                       <TableHeader>
                         <TableRow>
                           <TableHeaderCell>
                             <b>User</b>
                           </TableHeaderCell>
-                          <TableHeaderCell>
+                          <TableHeaderCell style={{ maxWidth: "200px" }}>
                             <b>IP Address</b>
                           </TableHeaderCell>
-                          <TableHeaderCell>
+                          <TableHeaderCell style={{ maxWidth: "120px" }}>
                             <b>Auth Type</b>
                           </TableHeaderCell>
                           <TableHeaderCell>
                             <b>Last Seen</b>
                           </TableHeaderCell>
 
-                          <TableHeaderCell />
+                          <TableHeaderCell style={{ maxWidth: "60px" }} />
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -287,12 +349,16 @@ const BW: NextPage = () => {
                                 {item.User}
                               </TableCellLayout>
                             </TableCell>
-                            <TableCell>{item.IPAddress}</TableCell>
-                            <TableCell>{item.AuthType}</TableCell>
+                            <TableCell style={{ maxWidth: "200px" }}>
+                              {item.IPAddress}
+                            </TableCell>
+                            <TableCell style={{ maxWidth: "120px" }}>
+                              {item.AuthType}
+                            </TableCell>
                             <TableCell>
                               {new Date(item.LastSeen).toLocaleString()}
                             </TableCell>
-                            <TableCell>
+                            <TableCell style={{ maxWidth: "60px" }}>
                               <TableCellLayout>
                                 <Button
                                   style={{ marginLeft: "0.5rem" }}
@@ -364,7 +430,7 @@ const BW: NextPage = () => {
                   <Input
                     type="text"
                     contentBefore={<SearchRegular />}
-                    placeholder="Search (use snakecase for field), example: name like test"
+                    placeholder="Search"
                     value={searchLoginLog}
                     onChange={(_, d) => {
                       setSearchLoginLog(d.value);
@@ -409,11 +475,11 @@ const BW: NextPage = () => {
                             <TableCell>
                               {new Date(item.TransactionAt).toLocaleString()}
                             </TableCell>
-                            <TableCell>{item.ByUser}</TableCell>
+                            <TableCell>{item.User}</TableCell>
                             <TableCell>{item.IPAddress}</TableCell>
 
                             <TableCell>
-                              {item.SuccessLogin ? (
+                              {item.Success ? (
                                 <Badge appearance="filled" color="brand">
                                   Success
                                 </Badge>
@@ -471,7 +537,7 @@ const BW: NextPage = () => {
                   <Input
                     type="text"
                     contentBefore={<SearchRegular />}
-                    placeholder="Search (use snakecase for field), example: name like test"
+                    placeholder="Search"
                     value={searchLogoutLog}
                     onChange={(_, d) => {
                       setSearchLogoutLog(d.value);
@@ -512,7 +578,7 @@ const BW: NextPage = () => {
                             <TableCell>
                               {new Date(item.TransactionAt).toLocaleString()}
                             </TableCell>
-                            <TableCell>{item.ByUser}</TableCell>
+                            <TableCell>{item.User}</TableCell>
                             <TableCell>{item.IPAddress}</TableCell>
                           </TableRow>
                         ))}
@@ -560,7 +626,7 @@ const BW: NextPage = () => {
                   <Input
                     type="text"
                     contentBefore={<SearchRegular />}
-                    placeholder="Search (use snakecase for field), example: name like test"
+                    placeholder="Search"
                     value={searchNetLog}
                     onChange={(_, d) => {
                       setSearchNetLog(d.value);
@@ -620,7 +686,7 @@ const BW: NextPage = () => {
                             <TableCell>
                               {item.TrafficFromInternet ? "True" : "False"}
                             </TableCell>
-                            <TableCell>{item.ByUser}</TableCell>
+                            <TableCell>{item.User}</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>

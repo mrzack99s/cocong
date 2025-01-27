@@ -3,7 +3,7 @@ package model
 import "time"
 
 type NetworkLog struct {
-	BaseModel
+	ID string
 
 	TransactionAt time.Time
 	Protocol      string
@@ -16,5 +16,5 @@ type NetworkLog struct {
 
 	TrafficFromInternet bool
 
-	ByUser string
+	User string
 }

@@ -9,14 +9,16 @@ import (
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
+	"github.com/google/uuid"
 	"github.com/mrzack99s/cocong/model"
-	"github.com/mrzack99s/cocong/model/inmemory_model"
+	"github.com/mrzack99s/cocong/session"
 	"github.com/mrzack99s/cocong/utils"
 	"github.com/mrzack99s/cocong/vars"
 )
 
 func NetWatcher(ctx context.Context) {
 	go func(ctx context.Context) {
+		time.Sleep(5 * time.Second)
 		for {
 			select {
 			case <-time.After(500 * time.Millisecond):
@@ -37,6 +39,7 @@ func NetWatcher(ctx context.Context) {
 				}
 
 				packetSource := gopacket.NewPacketSource(handle, handle.LinkType())
+
 				for packet := range packetSource.Packets() {
 
 					srcip := ""
@@ -67,6 +70,7 @@ func NetWatcher(ctx context.Context) {
 					}
 
 					netLogModel := &model.NetworkLog{
+						ID:                 uuid.New().String(),
 						TransactionAt:      packet.Metadata().Timestamp.In(vars.TZ),
 						Protocol:           proto,
 						SourceNetwork:      srcip,
@@ -78,10 +82,27 @@ func NetWatcher(ctx context.Context) {
 					if strings.TrimSpace(netLogModel.SourceNetwork) != "" && strings.TrimSpace(netLogModel.DestinationNetwork) != "" {
 						if !utils.IsPrivateIPAddress(srcip) {
 							netLogModel.TrafficFromInternet = true
+						} else {
+
+							session.Instance.UpdateLastSeen(netLogModel.SourceNetwork)
+							// sessionKey := fmt.Sprintf("session|*|%s", netLogModel.SourceNetwork)
+							// mSession, err := utils.RedisGetInsideWildcard[inmemory_model.Session](context.Background(), vars.RedisCache, sessionKey)
+							// if err == nil {
+							// 	mSession.LastSeen = netLogModel.TransactionAt
+							// 	utils.RedisSet(
+							// 		context.Background(),
+							// 		vars.RedisCache,
+							// 		fmt.Sprintf("session|%s", mSession.ID),
+							// 		mSession,
+							// 		time.Duration(vars.Config.SessionIdle)*time.Minute,
+							// 	)
+							// }
+
 						}
 
-						vars.InMemoryDatabase.Model(&inmemory_model.Session{}).Where("ip_address = ?", netLogModel.SourceNetwork).Update("last_seen", time.Now().In(vars.TZ))
-						vars.Database.Create(netLogModel)
+						if !vars.Config.DisabledNetworkCapture {
+							vars.NetLogDatabase.Index(netLogModel.ID, netLogModel)
+						}
 
 					}
 

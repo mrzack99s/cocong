@@ -176,23 +176,26 @@ const BW: NextPage = () => {
     if (selectedRows.size == 0) {
       toast("Warning", <>Please select directory</>, "warning");
     } else {
-      apiConnector
-        .post("/op/user/create", {
-          Name: name,
-          UserID: userid,
-          Username: username,
-          Enable: statusEnable,
-          DirectoryID: dataDirectory[selectedRows.values().next().value].ID,
-        })
-        .then(() => {
-          toast("Success", <>Create a new user success</>, "success");
-          setRefresh(!refresh);
-          setMode("data");
-          clearInput();
-        })
-        .catch(() => {
-          toast("Error", <>Cannot create a user directory</>, "error");
-        });
+      let index = selectedRows.values().next().value;
+      if (index != undefined) {
+        apiConnector
+          .post("/op/user/create", {
+            Name: name,
+            UserID: userid,
+            Username: username,
+            Enable: statusEnable,
+            DirectoryID: dataDirectory[index as number].ID,
+          })
+          .then(() => {
+            toast("Success", <>Create a new user success</>, "success");
+            setRefresh(!refresh);
+            setMode("data");
+            clearInput();
+          })
+          .catch(() => {
+            toast("Error", <>Cannot create a user directory</>, "error");
+          });
+      }
     }
   };
 

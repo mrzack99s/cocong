@@ -1,27 +1,19 @@
 package network
 
 import (
-	"github.com/mrzack99s/cocong/model/inmemory_model"
+	"github.com/mrzack99s/cocong/types"
 	"github.com/mrzack99s/cocong/utils"
 	"github.com/mrzack99s/cocong/vars"
 )
 
-func DeleteAllowAccess(ss *inmemory_model.Session) (err error) {
+func DeleteAllowAccess(ss *types.SessionInfo) {
 
-	err = IPT.Delete("nat", "PREROUTING", "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "-j", "ACCEPT")
-	if err != nil {
-		return
-	}
+	IPT.Delete("nat", "PREROUTING", "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "-j", "ACCEPT")
+	IPT.Delete("filter", "FORWARD", "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "-o", vars.Config.EgressInterface, "-j", "ACCEPT")
 
-	err = IPT.Delete("filter", "FORWARD", "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "-o", vars.Config.EgressInterface, "-j", "ACCEPT")
-	if err != nil {
-		return
-	}
-
-	return
 }
 
-func DeleteAllowAccessBypass(ss *inmemory_model.Session) (err error) {
+func DeleteAllowAccessBypass(ss *types.SessionInfo) (err error) {
 	interfaceIp, _ := utils.GetSecureInterfaceIpv4Addr()
 
 	err = IPT.Delete("nat", "PREROUTING", "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "-j", "ACCEPT")
@@ -29,10 +21,15 @@ func DeleteAllowAccessBypass(ss *inmemory_model.Session) (err error) {
 		return
 	}
 
+	Last_insert_prerouting -= 1
+
 	err = IPT.Delete("filter", "FORWARD", "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "-o", vars.Config.EgressInterface, "-j", "ACCEPT")
 	if err != nil {
 		return
 	}
+
+	Last_accept_forward_rule_num -= 1
+
 	err = IPT.Delete("filter", "INPUT", "-p", "udp", "-s", ss.IPAddress, "-i", vars.Config.SecureInterface, "--dport", "53", "-d", interfaceIp, "-j", "ACCEPT")
 	if err != nil {
 		return
@@ -47,6 +44,8 @@ func DeleteAllowAccessBypass(ss *inmemory_model.Session) (err error) {
 	if err != nil {
 		return
 	}
+
+	Last_accept_input_rule_num -= 3
 
 	return
 }

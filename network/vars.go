@@ -3,8 +3,12 @@ package network
 import "github.com/coreos/go-iptables/iptables"
 
 var (
-	IPT *iptables.IPTables
-	// last_accept_input_rule_num   int = 0
-	last_accept_forward_rule_num int = 3
-	// last_insert_init_prerouting  int = 0
+	IPT                          *iptables.IPTables
+	Last_accept_input_rule_num   int = 2
+	Last_accept_forward_rule_num int = 3
+	Last_insert_prerouting       int = 4
+
+	AuthorizedNetworks    = []string{}
+	SSHAuthorizedNetworks = []string{}
+	BypassedNetworks      = []string{}
 )
